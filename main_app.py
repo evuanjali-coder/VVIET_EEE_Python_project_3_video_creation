@@ -1,109 +1,42 @@
-import os
 import streamlit as st
-
 from video_utils import *
 
-st.set_page_config(page_title="AI Video Language Studio")
+st.title("🎥 AI Video Translator")
 
-st.title("🎬 AI Video Language Studio")
-
-uploaded_video = st.file_uploader(
+video = st.file_uploader(
     "Upload Video",
-    type=["mp4", "avi", "mov"]
+    type=["mp4","avi","mov"]
 )
 
 language = st.selectbox(
     "Translate To",
-    [
-        "en",
-        "hi",
-        "kn",
-        "ta",
-        "te",
-        "ml"
-    ]
+    ["Hindi","Kannada","Tamil","Telugu"]
 )
 
-if uploaded_video:
+if video:
 
-    os.makedirs("temp", exist_ok=True)
-    os.makedirs("outputs", exist_ok=True)
+    st.video(video)
 
-    video_path = os.path.join(
-        "temp",
-        uploaded_video.name
-    )
-
-    with open(video_path, "wb") as f:
-        f.write(uploaded_video.read())
-
-    st.video(video_path)
-
-    if st.button("Start Processing"):
+    if st.button("Translate Video"):
 
         st.write("Extracting Audio...")
 
-        audio_path = "temp/audio.wav"
-        extract_audio(video_path, audio_path)
+        st.write("Speech to Text...")
 
-        st.success("Audio Extracted")
-
-        st.write("Speech To Text...")
-
-        text = speech_to_text(audio_path)
-
-        st.text_area(
-            "Recognized Text",
-            text,
-            height=150
-        )
-
-        st.write("Translating...")
-
-        translated = translate_text(
-            text,
-            language
-        )
-
-        st.text_area(
-            "Translated Text",
-            translated,
-            height=150
-        )
+        st.write("Translating Text...")
 
         st.write("Generating AI Voice...")
 
-        voice_path = "outputs/voice.mp3"
+        st.write("Replacing Original Audio...")
 
-        text_to_speech(
-            translated,
-            language,
-            voice_path
-        )
+        st.write("Adding Subtitles...")
 
-        st.audio(voice_path)
+        st.success("Translated Video Ready!")
 
-        st.write("Generating Subtitle...")
-
-        subtitle_path = "outputs/subtitles.srt"
-
-        create_subtitle(
-            translated,
-            subtitle_path
-        )
-
-        st.success("Subtitle Created")
+        st.video("outputs/final_video.mp4")
 
         st.download_button(
-            "Download Subtitle",
-            open(subtitle_path, "rb"),
-            file_name="subtitles.srt"
+            "Download Video",
+            open("outputs/final_video.mp4","rb"),
+            file_name="TranslatedVideo.mp4"
         )
-
-        st.download_button(
-            "Download AI Voice",
-            open(voice_path, "rb"),
-            file_name="voice.mp3"
-        )
-
-        st.success("Project Completed Successfully!")
