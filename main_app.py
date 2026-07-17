@@ -1,42 +1,129 @@
 import streamlit as st
+import os
+
 from video_utils import *
 
-st.title("🎥 AI Video Translator")
+st.set_page_config(page_title="AI Video Language Studio")
+
+st.title("🎬 AI Video Language Studio")
 
 video = st.file_uploader(
     "Upload Video",
-    type=["mp4","avi","mov"]
+    type=["mp4", "avi", "mov"]
 )
 
 language = st.selectbox(
     "Translate To",
-    ["Hindi","Kannada","Tamil","Telugu"]
+    [
+        "en",
+        "hi",
+        "kn",
+        "ta",
+        "te",
+        "ml"
+    ]
 )
 
 if video:
 
-    st.video(video)
+    os.makedirs("temp", exist_ok=True)
+    os.makedirs("output", exist_ok=True)
 
-    if st.button("Translate Video"):
+    video_path = os.path.join(
+        "temp",
+        video.name
+    )
 
-        st.write("Extracting Audio...")
+    with open(video_path, "wb") as file:
+        file.write(video.read())
 
-        st.write("Speech to Text...")
+    st.video(video_path)
 
-        st.write("Translating Text...")
+    if st.button("Process Video"):
 
-        st.write("Generating AI Voice...")
+        st.write("Step 1 : Extracting Audio...")
 
-        st.write("Replacing Original Audio...")
+        audio_path = "temp/audio.wav"
 
-        st.write("Adding Subtitles...")
-
-        st.success("Translated Video Ready!")
-
-        st.video("outputs/final_video.mp4")
-
-        st.download_button(
-            "Download Video",
-            open("outputs/final_video.mp4","rb"),
-            file_name="TranslatedVideo.mp4"
+        extract_audio(
+            video_path,
+            audio_path
         )
+
+        st.success("Audio Extracted")
+
+        st.write("Step 2 : Speech To Text...")
+
+        text = speech_to_text(audio_path)
+
+        st.text_area(
+            "Recognized Text",
+            text
+        )
+
+        st.write("Step 3 : Translating...")
+
+        translated = translate_text(
+            text,
+            language
+        )
+
+        st.text_area(
+            "Translated Text",
+            translated
+        )
+
+        st.write("Step 4 : AI Voice Generation...")
+
+        voice = "output/voice.mp3"
+
+        generate_voice(
+            translated,
+            language,
+            voice
+        )
+
+        st.audio(voice)
+
+        st.write("Step 5 : Subtitle Generation...")
+
+        subtitle = "output/subtitle.srt"
+
+        create_subtitle(
+            translated,
+            subtitle
+        )
+
+        st.success("Subtitle Created")
+
+        st.write("Step 6 : Replacing Audio...")
+
+        translated_video = "output/translated_video.mp4"
+
+        replace_audio(
+            video_path,
+            voice,
+            translated_video
+        )
+
+        st.write("Step 7 : Adding Subtitle...")
+
+        final_video = "output/final_video.mp4"
+
+        add_subtitle(
+            translated_video,
+            subtitle,
+            final_video
+        )
+
+        st.success("Video Processing Completed")
+
+        st.video(final_video)
+
+        with open(final_video, "rb") as file:
+
+            st.download_button(
+                "Download Final Video",
+                file,
+                file_name="TranslatedVideo.mp4"
+            )
